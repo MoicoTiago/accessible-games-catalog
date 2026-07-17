@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "newman": "^6.2.1",
+    "newman": "^6.2.2",
     "sqlite3": "^5.1.7",
     "swagger-cli": "^4.0.4"
   }
