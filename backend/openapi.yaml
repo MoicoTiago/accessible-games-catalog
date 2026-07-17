@@ -1,0 +1,1186 @@
+﻿openapi: 3.0.3
+info:
+  title: Accessible Games Platform API
+  version: "1.0.0"
+  description: >
+    HTTP API for authentication, games catalog, user preferences, follows,
+    reviews, and voice intent parsing used by the Team 13 project.
+servers:
+  - url: http://localhost:5000
+    description: Local development
+tags:
+  - name: Auth
+  - name: Games
+  - name: Library
+  - name: Users
+  - name: Voice
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username:
+                  type: string
+                  example: player1
+                email:
+                  type: string
+                  format: email
+                  example: player1@example.com
+                password:
+                  type: string
+                  format: password
+                  example: changeme123
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Username or email already used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Registration failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in with username or email
+      description: Supply either `identifier`, `username`, or `email` plus `password`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                identifier:
+                  type: string
+                  description: Username or email
+                  example: player1
+                username:
+                  type: string
+                  example: player1
+                email:
+                  type: string
+                  format: email
+                  example: player1@example.com
+                password:
+                  type: string
+                  format: password
+                  example: changeme123
+      responses:
+        "200":
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Missing identifier/password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Login failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get the current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Load failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/tag-groups:
+    get:
+      tags: [Library]
+      summary: List canonical tag groups
+      responses:
+        "200":
+          description: Tag groups loaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TagGroup"
+              examples:
+                default:
+                  value:
+                    groups:
+                      - id: accessibility-categories
+                        label: Accessibility Categories
+                        tags: [Vision, Hearing, Motor, Speech, Cognitive]
+                      - id: vision
+                        label: Vision Tags
+                        tags: [Colourblind Mode, High Contrast, Large Text, Screen Reader Friendly]
+  /api/games:
+    get:
+      tags: [Library]
+      summary: List games with tags
+      description: Returns all games ordered by title with basic fields and attached tag names.
+      responses:
+        "200":
+          description: Games loaded
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GameListItem"
+  /api/games/search:
+    get:
+      tags: [Library]
+      summary: Search games by text and tags
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Free-text search applied to title and platform.
+          schema:
+            type: string
+          example: puzzle
+        - name: tags
+          in: query
+          required: false
+          description: Comma-separated list of tag names; all provided tags must match.
+          schema:
+            type: string
+          example: Vision,Colourblind Mode
+      responses:
+        "200":
+          description: Matching games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GameListItem"
+        "500":
+          description: Search failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/games/{id}:
+    get:
+      tags: [Games]
+      summary: Get a single game with reviews
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Game found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameDetail"
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Fetch failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/games/{id}/reviews:
+    get:
+      tags: [Games]
+      summary: List reviews for a game
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        "200":
+          description: Reviews loaded
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReviewWithUser"
+        "500":
+          description: Failed to fetch reviews
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Games]
+      summary: Create a review for a game
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                comment:
+                  type: string
+                  example: Loved the accessibility options.
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Missing rating
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Failed to create review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/users/{id}/reviews:
+    get:
+      tags: [Users]
+      summary: Get reviews created by a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 10
+      responses:
+        "200":
+          description: Reviews for user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    rating:
+                      type: integer
+                    comment:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                    game:
+                      type: object
+                      nullable: true
+                      properties:
+                        id:
+                          type: integer
+                        title:
+                          type: string
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Fetch failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/users/{id}/accessibility-preferences:
+    get:
+      tags: [Users]
+      summary: Get a user's accessibility preferences
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Preferences loaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessibilityPreferences"
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Load failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags: [Users]
+      summary: Update accessibility preferences
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessibilityPreferences"
+      responses:
+        "200":
+          description: Preferences updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessibilityPreferences"
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Update failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/users/{id}/accessibility:
+    put:
+      tags: [Users]
+      summary: Replace accessibility preferences (no auth enforced)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessibilityPreferences"
+      responses:
+        "200":
+          description: Preferences replaced
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  preferences:
+                    $ref: "#/components/schemas/AccessibilityPreferences"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Update failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/users/{id}/follow/{gameId}:
+    post:
+      tags: [Users]
+      summary: Follow a game
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Followed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  gameId:
+                    type: integer
+        "400":
+          description: Invalid ids
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User or game not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Follow failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Users]
+      summary: Unfollow a game
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Unfollowed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  gameId:
+                    type: integer
+        "400":
+          description: Invalid ids
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User or game not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unfollow failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/users/{id}/followed-games:
+    get:
+      tags: [Users]
+      summary: List games followed by a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Followed games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FollowedGame"
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Load failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/users/{id}:
+    patch:
+      tags: [Users]
+      summary: Update username or email
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Missing fields or invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Update failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/users/{id}/password:
+    patch:
+      tags: [Users]
+      summary: Change password
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                  format: password
+                newPassword:
+                  type: string
+                  format: password
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "400":
+          description: Missing fields or incorrect password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Change failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/users/{id}/recommended-games:
+    get:
+      tags: [Users]
+      summary: Get recommended games based on accessibility preferences
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recommended games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecommendedGame"
+        "400":
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Fetch failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/voice/interpret:
+    post:
+      tags: [Voice]
+      summary: Interpret a transcript into an intent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [transcript]
+              properties:
+                transcript:
+                  type: string
+                  example: Find puzzle games with captions
+      responses:
+        "200":
+          description: Intent detected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  intent:
+                    $ref: "#/components/schemas/VoiceIntent"
+        "400":
+          description: Missing transcript
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+        detail:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+          description: JWT bearer token
+      example:
+        id: 12
+        username: player1
+        email: player1@example.com
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        createdAt:
+          type: string
+          format: date-time
+      example:
+        id: 12
+        username: player1
+        email: player1@example.com
+        createdAt: "2024-05-01T12:34:56.000Z"
+    TagGroup:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+    GameListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        platform:
+          type: string
+        releaseDate:
+          type: string
+          nullable: true
+          format: date
+        rating:
+          type: number
+          format: float
+        images:
+          type: array
+          items:
+            type: string
+            description: Path to thumbnail image
+        tags:
+          type: array
+          items:
+            type: string
+      example:
+        id: 1
+        title: Cozy Quest
+        platform: PC
+        releaseDate: "2024-09-01"
+        rating: 4.5
+        images:
+          - /images/cozy-quest-1.jpg
+        tags: [Casual, Large Text, High Contrast]
+    GameDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        platform:
+          type: string
+        developer:
+          type: string
+        category:
+          type: string
+        releaseDate:
+          type: string
+          format: date
+          nullable: true
+        rating:
+          type: number
+        description:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReviewWithUser"
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          nullable: true
+        gameId:
+          type: integer
+        userId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ReviewWithUser:
+      allOf:
+        - $ref: "#/components/schemas/Review"
+        - type: object
+          properties:
+            user:
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: integer
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                  nullable: true
+    AccessibilityPreferences:
+      type: object
+      properties:
+        visual:
+          type: boolean
+        motor:
+          type: boolean
+        cognitive:
+          type: boolean
+        hearing:
+          type: boolean
+      example:
+        visual: true
+        motor: false
+        cognitive: false
+        hearing: true
+    FollowedGame:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+      example:
+        id: 3
+        title: Sprint Racer
+        images: []
+    RecommendedGame:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        platform:
+          type: string
+        rating:
+          type: number
+        images:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+      example:
+        id: 5
+        title: Calm Seas
+        platform: Mobile
+        rating: 4.2
+        images:
+          - /images/calm-seas-1.jpg
+        tags: [Hearing, Captions]
+    VoiceIntent:
+      type: object
+      nullable: true
+      description: Parsed intent from a transcript. May be null when no intent is recognized.
+      properties:
+        type:
+          type: string
+          description: One of navigate|search|filter|reset-filters|ui|scroll|game
+        target:
+          type: string
+        query:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        tag:
+          type: string
+        action:
+          type: string
+        direction:
+          type: string
+          enum: [up, down]
+        utterance:
+          type: string

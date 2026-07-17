@@ -1,0 +1,646 @@
+{
+  "info": {
+    "_postman_id": "a0f5c3de-6e7f-4a91-9f8e-9c964d0c0db5",
+    "name": "Team 13 Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register new user",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now();",
+                  "pm.variables.set('username', `postman_${suffix}`);",
+                  "pm.variables.set('email', `postman_${suffix}@example.local`);",
+                  "pm.variables.set('password', pm.environment.get('testPassword') || 'Postman!123');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.code === 201);",
+                  "const json = pm.response.json();",
+                  "pm.expect(json).to.have.property('token');",
+                  "pm.expect(json).to.have.property('id');",
+                  "pm.environment.set('userToken', json.token);",
+                  "pm.environment.set('userId', json.id);",
+                  "pm.environment.set('testUsername', pm.variables.get('username'));",
+                  "pm.environment.set('testEmail', pm.variables.get('email'));",
+                  "pm.environment.set('testPassword', pm.variables.get('password'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login existing user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.code === 200);",
+                  "const json = pm.response.json();",
+                  "pm.expect(json).to.have.property('token');",
+                  "pm.environment.set('userToken', json.token);",
+                  "pm.environment.set('userId', json.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get current user profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.code === 200);",
+                  "const json = pm.response.json();",
+                  "pm.expect(json).to.have.property('id');",
+                  "pm.expect(json.id).to.eql(pm.environment.get('userId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "item": [
+        {
+          "name": "List tag groups",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.code === 200);",
+                  "const json = pm.response.json();",
+                  "pm.expect(json).to.have.property('groups');",
+                  "pm.expect(json.groups).to.be.an('array').that.is.not.empty;",
+                  "pm.expect(json.groups.some(g => (g.tags || []).includes('Vision'))).to.be.true;"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tag-groups",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tag-groups"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Games",
+      "item": [
+        {
+          "name": "List games",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.code === 200);",
+                  "const games = pm.response.json();",
+                  "pm.expect(games).to.be.an('array').that.is.not.empty;",
+                  "pm.environment.set('gameId', games[0].id);",
+                  "pm.environment.set('gameTitle', games[0].title || games[0].name);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/games",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "games"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search games with tags",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.code === 200);",
+                  "const results = pm.response.json();",
+                  "pm.expect(results).to.be.an('array');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/games/search?q=puzzle&tags=Puzzle",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "games",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "puzzle"
+                },
+                {
+                  "key": "tags",
+                  "value": "Puzzle"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get single game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.code === 200);",
+                  "const game = pm.response.json();",
+                  "pm.expect(game).to.have.property('id');",
+                  "pm.expect(game.id).to.eql(pm.environment.get('gameId'));",
+                  "pm.expect(game).to.have.property('tags');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/games/{{gameId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "games",
+                "{{gameId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create review requires auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 when missing token', () => pm.response.code === 401);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Should fail without token\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/games/{{gameId}}/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "games",
+                "{{gameId}}",
+                "reviews"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create review (authenticated)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('rating', Math.floor(Math.random() * 5) + 1);",
+                  "pm.variables.set('comment', `Postman review ${Date.now()}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.code === 201);",
+                  "const json = pm.response.json();",
+                  "pm.expect(json).to.have.property('rating');",
+                  "pm.expect(json.rating).to.eql(pm.variables.get('rating'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": {{rating}},\n  \"comment\": \"{{comment}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/games/{{gameId}}/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "games",
+                "{{gameId}}",
+                "reviews"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Voice",
+      "item": [
+        {
+          "name": "Interpret transcript",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.code === 200);",
+                  "const json = pm.response.json();",
+                  "pm.expect(json).to.have.property('intent');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transcript\": \"hey platform show puzzle games\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/voice/interpret",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "voice",
+                "interpret"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports (admin flow)",
+      "item": [
+        {
+          "name": "Reports require admin (user token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403 for non-admin', () => pm.response.code === 403);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/games/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "games",
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create game report (user)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('reportMessage', `Postman report ${Date.now()}`);",
+                  "pm.environment.set('reportMessage', pm.variables.get('reportMessage'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.code === 201);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"{{reportMessage}}\"\n}"
+            },
+          "url": {
+              "raw": "{{baseUrl}}/games/{{gameId}}/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "games",
+                "{{gameId}}",
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.code === 200);",
+                  "const json = pm.response.json();",
+                  "pm.environment.set('adminToken', json.token);",
+                  "pm.expect(json).to.have.property('token');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"admin\",\n  \"password\": \"adminPass123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List game reports (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.code === 200);",
+                  "const reports = pm.response.json();",
+                  "pm.expect(reports).to.be.an('array');",
+                  "if (reports.length) {",
+                  "  const targetMsg = pm.environment.get('reportMessage');",
+                  "  const match = targetMsg ? reports.find(r => r.message === targetMsg) : reports[0];",
+                  "  const target = match || reports[0];",
+                  "  pm.environment.set('reportId', target.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/games/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "games",
+                "reports"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Resolve latest report (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.code === 204);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/games/reports/{{reportId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "games",
+                "reports",
+                "{{reportId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

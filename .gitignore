@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Builds and test output
+dist/
+**/dist/
+coverage/
+**/coverage/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Tool caches
+.npm-cache*/
+.vite/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+

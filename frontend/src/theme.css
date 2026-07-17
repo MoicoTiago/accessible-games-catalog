@@ -1,0 +1,321 @@
+:root {
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f1f5f9;
+  --border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-muted: #475569;
+  --accent: #15803d;
+  --accent-strong: #0f6d2f;
+  --accent-contrast: #ffffff;
+  --focus-color: #ffbf3b;
+  --focus-shadow: rgba(255, 191, 59, 0.35);
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Global spacing & control sizing driven by settings */
+body {
+  --global-gap: 1rem;
+  --global-btn-px: 1rem;
+  --global-btn-py: 0.6rem;
+  --global-btn-font: 1rem;
+}
+
+body[data-spacing="snug"] {
+  --global-gap: 0.6rem;
+}
+body[data-spacing="airy"] {
+  --global-gap: 1.4rem;
+}
+
+body[data-button-size="normal"] {
+  --global-btn-px: 1rem;
+  --global-btn-py: 0.6rem;
+  --global-btn-font: 1rem;
+}
+body[data-button-size="large"] {
+  --global-btn-px: 1.15rem;
+  --global-btn-py: 0.7rem;
+  --global-btn-font: 1.05rem;
+}
+body[data-button-size="xlarge"] {
+  --global-btn-px: 1.35rem;
+  --global-btn-py: 0.8rem;
+  --global-btn-font: 1.1rem;
+}
+
+/* Apply spacing to common flex/grid layouts */
+body .flex,
+body .grid {
+  gap: var(--global-gap) !important;
+  row-gap: var(--global-gap) !important;
+  column-gap: var(--global-gap) !important;
+}
+
+/* Apply control sizing broadly to buttons/inputs */
+body button,
+body [role="button"],
+body input[type="button"],
+body input[type="submit"],
+body input[type="reset"] {
+  padding: var(--global-btn-py) var(--global-btn-px) !important;
+  font-size: var(--global-btn-font) !important;
+}
+
+body[data-text-size="small"] {
+  font-size: 14px;
+}
+
+body[data-text-size="medium"] {
+  font-size: 16px;
+}
+
+body[data-text-size="large"] {
+  font-size: 18px;
+}
+
+body[data-theme="dark"] {
+  --bg-page: #0f172a;
+  --bg-surface: #1f2937;
+  --bg-subtle: #111827;
+  --border: #334155;
+  --text-primary: #f8fafc;
+  --text-muted: #e2e8f0cc;
+  --accent: #22c55e;
+  --accent-strong: #16a34a;
+  --accent-contrast: #0b1b0f;
+  --focus-color: #facc15;
+  --focus-shadow: rgba(250, 204, 21, 0.4);
+}
+
+body[data-hc="true"] {
+  --bg-page: #020617;
+  --bg-surface: #0b1224;
+  --bg-subtle: #0a162f;
+  --border: #a3e635;
+  --text-primary: #eaffc7;
+  --text-muted: #d9f99d;
+  --accent: #a3e635;
+  --accent-strong: #84cc16;
+  --accent-contrast: #051203;
+  --focus-color: #a3e635;
+  --focus-shadow: rgba(163, 230, 53, 0.45);
+}
+
+/* Optional helper classes to gradually adopt the tokens */
+.tone-page {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.tone-surface {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.tone-subtle {
+  background-color: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.tone-muted {
+  color: var(--text-muted);
+}
+
+.tone-accent {
+  color: var(--accent);
+}
+
+.btn-accent {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.btn-accent-strong {
+  background-color: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+
+/* Utility helpers to avoid hard-coded colors */
+.theme-page {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.theme-surface {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.theme-subtle {
+  background-color: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.theme-border {
+  border-color: var(--border);
+}
+
+.theme-text {
+  color: var(--text-primary);
+}
+
+.theme-muted {
+  color: var(--text-muted);
+}
+
+.theme-accent {
+  color: var(--accent);
+}
+
+.theme-btn {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.theme-btn-strong {
+  background-color: var(--accent-strong);
+  color: var(--accent-contrast);
+}
+
+.theme-input {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+/* Local gap helpers to override global spacing when needed */
+.gap-tight {
+  gap: 0.35rem !important;
+  row-gap: 0.35rem !important;
+  column-gap: 0.35rem !important;
+}
+
+.gap-snug {
+  gap: 0.5rem !important;
+  row-gap: 0.5rem !important;
+  column-gap: 0.5rem !important;
+}
+
+/* Generic focus + hit target sizing */
+:where(button, a[href], input, select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px var(--focus-shadow);
+}
+
+:where(button, a[href], input, select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])) {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Skip link & screen-reader helpers */
+.skip-link {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: var(--focus-color);
+  color: #000;
+  z-index: 1000;
+  transform: translateY(-200%);
+  transition: transform 0.15s ease;
+  border-radius: 0.5rem;
+  font-weight: 600;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Page shell for consistent readable width */
+.page-shell {
+  max-width: 70rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  width: 100%;
+}
+
+/* Home page dark/high-contrast adjustments without rewriting every class */
+.home-page {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+}
+
+body[data-theme="dark"] .home-page,
+body[data-hc="true"] .home-page {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+}
+
+body[data-theme="dark"] .home-page .bg-white,
+body[data-theme="dark"] .home-page .bg-gray-100,
+body[data-theme="dark"] .home-page .bg-sky-100,
+body[data-hc="true"] .home-page .bg-white,
+body[data-hc="true"] .home-page .bg-gray-100,
+body[data-hc="true"] .home-page .bg-sky-100 {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+}
+
+body[data-theme="dark"] .home-page .bg-slate-200,
+body[data-theme="dark"] .home-page .bg-gray-200,
+body[data-hc="true"] .home-page .bg-slate-200,
+body[data-hc="true"] .home-page .bg-gray-200 {
+  background-color: var(--bg-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+body[data-theme="dark"] .home-page .text-gray-900,
+body[data-theme="dark"] .home-page .text-gray-700,
+body[data-theme="dark"] .home-page .text-slate-700,
+body[data-theme="dark"] .home-page .text-slate-900,
+body[data-hc="true"] .home-page .text-gray-900,
+body[data-hc="true"] .home-page .text-gray-700,
+body[data-hc="true"] .home-page .text-slate-700,
+body[data-hc="true"] .home-page .text-slate-900 {
+  color: var(--text-primary) !important;
+}
+
+body[data-theme="dark"] .home-page .text-slate-400,
+body[data-theme="dark"] .home-page .text-gray-500,
+body[data-hc="true"] .home-page .text-slate-400,
+body[data-hc="true"] .home-page .text-gray-500 {
+  color: var(--text-muted) !important;
+}
+
+body[data-theme="dark"] .home-page .border-gray-300,
+body[data-theme="dark"] .home-page .border-slate-300,
+body[data-theme="dark"] .home-page .border-slate-200,
+body[data-hc="true"] .home-page .border-gray-300,
+body[data-hc="true"] .home-page .border-slate-300,
+body[data-hc="true"] .home-page .border-slate-200 {
+  border-color: var(--border) !important;
+}
+
+body[data-theme="dark"] .home-page .bg-sky-500,
+body[data-hc="true"] .home-page .bg-sky-500 {
+  background-color: var(--accent) !important;
+}
+
+body[data-theme="dark"] .home-page .hover\\:bg-sky-600:hover,
+body[data-hc="true"] .home-page .hover\\:bg-sky-600:hover {
+  background-color: var(--accent-strong) !important;
+}

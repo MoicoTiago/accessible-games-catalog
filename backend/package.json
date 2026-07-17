@@ -1,0 +1,60 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test:all": "npm test && npm run test:int",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:int": "cross-env NODE_OPTIONS=--experimental-vm-modules DB_DIALECT=sqlite DB_STORAGE=:memory: jest tests/games.integration.test.js",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed:games": "node backend/config/seedGames.js",
+    "coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage --runInBand",
+    "coverage:all": "cross-env NODE_OPTIONS=--experimental-vm-modules DB_DIALECT=sqlite DB_STORAGE=:memory: jest --coverage --runInBand",
+    "coverage:int": "cross-env NODE_OPTIONS=--experimental-vm-modules DB_DIALECT=sqlite DB_STORAGE=:memory: jest tests/games.integration.test.js --coverage --runInBand"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mariadb": "^3.4.5",
+    "sequelize": "^6.37.7",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.8.2"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.10",
+    "supertest": "^6.3.4"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/backend/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "routes/**/*.js",
+      "models/**/*.js",
+      "middleware/**/*.js",
+      "app.js",
+      "!server.js",
+      "!tests/**",
+      "!config/**"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "text-summary",
+      "html"
+    ]
+  }
+}

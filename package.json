@@ -1,0 +1,28 @@
+{
+  "name": "accessible-games-catalog",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "setup": "npm install --prefix backend && npm install --prefix frontend",
+    "start": "npm run setup && npm run dev",
+    "test": "npm --prefix backend run test:all && npm run test:frontend",
+    "test:backend": "npm --prefix backend test",
+    "test:backend:int": "npm --prefix backend run test:int",
+    "test:frontend": "npm --prefix frontend test",
+    "test:frontend:watch": "npm --prefix frontend run test:watch",
+    "test:postman": "node scripts/run-postman.js",
+    "coverage:backend": "npm --prefix backend run coverage",
+    "coverage:backend:int": "npm --prefix backend run coverage:int",
+    "coverage:frontend": "npm --prefix frontend run coverage",
+    "coverage": "npm run coverage:backend && npm run coverage:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "newman": "^6.2.1",
+    "sqlite3": "^5.1.7",
+    "swagger-cli": "^4.0.4"
+  }
+}
